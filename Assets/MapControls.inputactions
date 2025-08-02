@@ -1,0 +1,35 @@
+{
+    "version": 1,
+    "name": "MapControls",
+    "maps": [
+        {
+            "name": "Map",
+            "id": "460f9bb4-c187-45c6-ad50-301b94d8e8a3",
+            "actions": [
+                {
+                    "name": "Scroll",
+                    "type": "Value",
+                    "id": "f1b02c1e-5b77-464b-8227-86f2d7fb9889",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "67a4021a-765f-43f0-b6fd-af57d3f56a4c",
+                    "path": "<Mouse>/scroll",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Scroll",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}
