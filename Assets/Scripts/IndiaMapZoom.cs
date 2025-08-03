@@ -13,54 +13,55 @@ public class IndiaMapZoom : MonoBehaviour
     public Camera mainCamera;
 
     private int currentZoom;
-    private float tileSize = 5f;
+    private float tileSize = 1f;
     private float zoomScale = 1f;
     private float scaleStep = 0.1f;
+    private float mapCenterLat = 20.5937f; // default India center
+    private float mapCenterLon = 78.9629f;
 
     private Dictionary<string, GameObject> tileCache = new Dictionary<string, GameObject>();
-
-    private float currentCenterLat = 28.6139f; // New Delhi (Default)
-    private float currentCenterLon = 77.2090f;
 
     void Start()
     {
         currentZoom = initialZoom;
         mainCamera.orthographic = true;
         mainCamera.transform.position = new Vector3(0, 0, -10f);
+        transform.position = Vector3.zero;
 
+        LoadTilesCenteredOnIndia();
         FitMapToCamera();
-        LoadTilesCenteredOn(currentCenterLat, currentCenterLon, currentZoom);
     }
 
     public void OnScrollZoom(float scrollDelta)
     {
-        Vector3 mouseWorldBeforeZoom = mainCamera.ScreenToWorldPoint(Mouse.current.position.ReadValue());
-
+        // Adjust scale only
         zoomScale += scrollDelta > 0 ? scaleStep : -scaleStep;
         zoomScale = Mathf.Clamp(zoomScale, 0.5f, 2f);
         transform.localScale = Vector3.one * zoomScale;
 
-        Vector3 mouseWorldAfterZoom = mainCamera.ScreenToWorldPoint(Mouse.current.position.ReadValue());
-        Vector3 delta = mouseWorldBeforeZoom - mouseWorldAfterZoom;
-        transform.position += delta;
-
+        // Recalculate zoom level based on scale
         int newZoom = Mathf.Clamp(initialZoom + Mathf.FloorToInt((zoomScale - 1f) * 4f), minZoom, maxZoom);
+
         if (newZoom != currentZoom)
         {
             currentZoom = newZoom;
             ClearTiles();
-            LoadTilesCenteredOn(currentCenterLat, currentCenterLon, currentZoom);
+            LoadTilesCenteredOn(GetMapCenterLat(), GetMapCenterLon(), currentZoom);
         }
     }
 
-    public void LoadTilesCenteredOn(float lat, float lon, int zoom)
+    void LoadTilesCenteredOnIndia()
     {
-        currentCenterLat = lat;
-        currentCenterLon = lon;
+        float lat = 20.5937f;
+        float lon = 78.9629f;
+        LoadTilesCenteredOn(lat, lon, currentZoom);
+    }
 
+    void LoadTilesCenteredOn(float lat, float lon, int zoom)
+    {
         int centerX = LonToTileX(lon, zoom);
         int centerY = LatToTileY(lat, zoom);
-        int radius = 2; // 5x5 grid
+        int radius = 2;
 
         for (int dx = -radius; dx <= radius; dx++)
         {
@@ -72,8 +73,6 @@ public class IndiaMapZoom : MonoBehaviour
                 LoadTile(zoom, tileX, tileY, localPos);
             }
         }
-
-        transform.position = Vector3.zero;
     }
 
     void LoadTile(int zoom, int x, int y, Vector3 localPos)
@@ -108,28 +107,22 @@ public class IndiaMapZoom : MonoBehaviour
 
     void FitMapToCamera()
     {
-        int tileCount = 5;
-        float mapWidth = tileCount * tileSize;
-        float mapHeight = tileCount * tileSize;
+        float camHeight = 2f * mainCamera.orthographicSize;
+        float camWidth = camHeight * mainCamera.aspect;
 
-        float screenAspect = (float)Screen.width / Screen.height;
-        float targetAspect = mapWidth / mapHeight;
+        float mapWidth = tileSize * 5;
+        float mapHeight = tileSize * 5;
 
-        if (screenAspect >= targetAspect)
-        {
-            mainCamera.orthographicSize = mapHeight / 2f;
-        }
-        else
-        {
-            float differenceInSize = targetAspect / screenAspect;
-            mainCamera.orthographicSize = (mapHeight / 2f) * differenceInSize;
-        }
+        float scaleX = camWidth / mapWidth;
+        float scaleY = camHeight / mapHeight;
+        float fitScale = Mathf.Min(scaleX, scaleY);
 
-        zoomScale = 1f;
+        zoomScale = fitScale;
         transform.localScale = Vector3.one * zoomScale;
-
-        mainCamera.transform.position = new Vector3(0, 0, -10f);
     }
+
+    float GetMapCenterLat() => mapCenterLat;
+    float GetMapCenterLon() => mapCenterLon;
 
     int LonToTileX(float lon, int zoom)
     {
@@ -140,5 +133,34 @@ public class IndiaMapZoom : MonoBehaviour
     {
         float latRad = lat * Mathf.Deg2Rad;
         return (int)((1f - Mathf.Log(Mathf.Tan(latRad) + 1f / Mathf.Cos(latRad)) / Mathf.PI) / 2f * (1 << zoom));
+    }
+
+    public int GetCurrentZoom()
+    {
+        return currentZoom;
+    }
+
+    public void CenterAndZoomToCity(float lat, float lon, int zoomLevel)
+    {
+        mapCenterLat = lat;
+        mapCenterLon = lon;
+        currentZoom = Mathf.Clamp(zoomLevel, minZoom, maxZoom);
+        ClearTiles();
+        LoadTilesCenteredOn(lat, lon, currentZoom);
+    }
+
+
+    public Vector3 LatLonToUnity(float lat, float lon)
+    {
+        int tileX = LonToTileX(lon, currentZoom);
+        int tileY = LatToTileY(lat, currentZoom);
+
+        int centerX = LonToTileX(GetMapCenterLon(), currentZoom);
+        int centerY = LatToTileY(GetMapCenterLat(), currentZoom);
+
+        int dx = tileX - centerX;
+        int dy = tileY - centerY;
+
+        return new Vector3(dx * tileSize, -dy * tileSize, 0f);
     }
 }

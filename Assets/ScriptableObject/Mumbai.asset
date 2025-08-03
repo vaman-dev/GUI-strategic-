@@ -10,8 +10,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2784258838fd0ec4f9225d9165fe27a5, type: 3}
-  m_Name: NewDelhi
+  m_Name: Mumbai
   m_EditorClassIdentifier: 
-  cityName: 'New Delhi '
-  latitude: 28.6139
-  longitude: 77.209
+  cityName: Mumbai
+  latitude: 19.076
+  longitude: 72.8777
