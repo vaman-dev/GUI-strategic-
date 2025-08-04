@@ -10,6 +10,7 @@ public class TileLoader : MonoBehaviour, IDragHandler, IBeginDragHandler
     public GameObject tilePrefab;
     public int minZoom = 5, maxZoom = 10, currentZoom = 5;
     public int tileSize = 256;
+    //[SerializeField] private Transform tileContainer;
 
     private Dictionary<Vector2Int, GameObject> loadedTiles = new();
     private Vector2 dragStart;
@@ -42,11 +43,16 @@ public class TileLoader : MonoBehaviour, IDragHandler, IBeginDragHandler
             mapContainer.anchoredPosition = originalAnchoredPosition; // Reset to original position
         }
     }
-
     void ReloadTiles(int zoom)
     {
+        // Only destroy tile GameObjects, skip PinsContainer
         foreach (Transform child in mapContainer)
-            Destroy(child.gameObject);
+        {
+            if (child.name != "PinsContainer")  // replace with actual name of your container
+            {
+                Destroy(child.gameObject);
+            }
+        }
 
         loadedTiles.Clear();
         LoadTiles(zoom);
