@@ -692,6 +692,7 @@ MonoBehaviour:
   maxZoom: 10
   currentZoom: 5
   tileSize: 256
+  pinManager: {fileID: 1443304984}
 --- !u!4 &1443304982
 Transform:
   m_ObjectHideFlags: 0

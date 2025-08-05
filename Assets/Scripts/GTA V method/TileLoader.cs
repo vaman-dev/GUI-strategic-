@@ -153,6 +153,8 @@ public class TileLoader : MonoBehaviour, IDragHandler, IBeginDragHandler
     public int minZoom = 5, maxZoom = 10, currentZoom = 5;
     public int tileSize = 256;
 
+    public PinManager pinManager;
+
     private Dictionary<Vector2Int, GameObject> loadedTiles = new();
     private Vector2 dragStart;
     private Vector2 originalAnchoredPosition;
@@ -194,7 +196,11 @@ public class TileLoader : MonoBehaviour, IDragHandler, IBeginDragHandler
     void LoadTiles(int z)
     {
         string zoomFolder = Path.Combine(Application.streamingAssetsPath, "Map Tiles", z.ToString());
-        if (!Directory.Exists(zoomFolder)) { Debug.LogError("Zoom folder not found: " + zoomFolder); return; }
+        if (!Directory.Exists(zoomFolder))
+        {
+            Debug.LogError("Zoom folder not found: " + zoomFolder);
+            return;
+        }
 
         var infos = new List<(int x, int y, string path)>();
         foreach (var xDir in Directory.GetDirectories(zoomFolder))
@@ -208,20 +214,23 @@ public class TileLoader : MonoBehaviour, IDragHandler, IBeginDragHandler
         }
         if (infos.Count == 0) return;
 
-        int minX = int.MaxValue, maxX = int.MinValue, minY = int.MaxValue, maxY = int.MinValue;
+        int minX = int.MaxValue, maxX = int.MinValue;
+        int minY = int.MaxValue, maxY = int.MinValue;
         foreach (var (x, y, _) in infos)
         {
             minX = Mathf.Min(minX, x); maxX = Mathf.Max(maxX, x);
             minY = Mathf.Min(minY, y); maxY = Mathf.Max(maxY, y);
         }
 
-        int w = (maxX - minX + 1) * tileSize, h = (maxY - minY + 1) * tileSize;
+        int w = (maxX - minX + 1) * tileSize;
+        int h = (maxY - minY + 1) * tileSize;
         mapContainer.sizeDelta = new Vector2(w, h);
 
         foreach (var (x, y, path) in infos)
         {
             var tile = Instantiate(tilePrefab, mapContainer);
             tile.name = $"Tile_{x}_{y}";
+
             var data = File.ReadAllBytes(path);
             var tex = new Texture2D(2, 2);
             tex.LoadImage(data);
@@ -234,6 +243,13 @@ public class TileLoader : MonoBehaviour, IDragHandler, IBeginDragHandler
             rt.anchoredPosition = new Vector2((x - minX) * tileSize, -(y - minY) * tileSize);
 
             loadedTiles[new Vector2Int(x, y)] = tile;
+        }
+
+        CenterMapOnStart();
+
+        if (pinManager != null)
+        {
+            pinManager.RepositionPins();
         }
     }
 
@@ -250,4 +266,11 @@ public class TileLoader : MonoBehaviour, IDragHandler, IBeginDragHandler
             mapContainer.anchoredPosition += delta;
         }
     }
+
+
+    void CenterMapOnStart()
+    {
+        mapContainer.anchoredPosition = originalAnchoredPosition;
+    }
+
 }

@@ -126,7 +126,7 @@ public partial class @MapControls: IInputActionCollection2, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""0da284b5-44cb-450d-aa8b-3fcb760f1881"",
-                    ""path"": ""<Mouse>/leftButton"",
+                    ""path"": ""<Mouse>/rightButton"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
